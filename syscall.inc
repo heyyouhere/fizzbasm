@@ -2,7 +2,7 @@
     int 0x80
 %endmacro
 
- %macro exit 1
+%macro exit_call 1
     mov eax, 1
     mov ebx, %1
     syscall
