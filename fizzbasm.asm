@@ -12,8 +12,10 @@ section .text
     input_buff_size db 16
     output_test db "hello, world!", 10, 0
     fizz db "Fizz", 10, 0
+    fizz_size equ $-fizz
     basm db "Basm", 10, 0
     fizzbasm db "FizzBasm", 10, 0
+    fizzbasm_size equ $-fizzbasm
 
 _start:
     mov dword [number], 0      ; save number
@@ -67,8 +69,7 @@ print_number_times:
     cmp edx, 0
     je print_basm
 
-
-    write 1, output_test, 15    ; TODO: make it print a int, not a default string
+    call print_number
 skip_print:
     pop ecx
     cmp ecx, [number]
@@ -79,16 +80,20 @@ exit:
     exit_call 0
 
 print_fizz:
-    write 1, fizz, 6
+    write 1, fizz, fizz_size
     jmp skip_print
 
 print_basm:
-    write 1, basm, 6
+    write 1, basm, fizz_size
     jmp skip_print
 
 print_fizzbasm:
-    write 1, fizzbasm, 10
+    write 1, fizzbasm, fizzbasm_size
     jmp skip_print
+
+print_number: ; number in ecx
+    write 1, output_test, 15 ; TODO: make it print a int, not a default string
+    ret
 
 exit_error:
     exit_call 69
