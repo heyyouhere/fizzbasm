@@ -1,11 +1,13 @@
 %include "syscall.inc"
 
-
 section .data
     number db 0
 
 section .bss
     input_buff resb 16
+    string resb 16
+    string_size equ $-string
+
 
 section .text
     global _start
@@ -48,30 +50,31 @@ print_number_times:
     push ecx
     mov ecx, 15
     div ecx
+    pop ecx
     cmp edx, 0
     je print_fizzbasm
 
-    pop ecx                     ; checking if counted div 3 == 0
-    mov edx, 0
+
+    mov edx, 0 ; checking if counted div 3 == 0
     mov eax, ecx
     push ecx
     mov ecx, 3
     div ecx
+    pop ecx
     cmp edx, 0
     je print_fizz
 
-    pop ecx                     ; checking if counted div 5 == 0
-    mov edx, 0
+    mov edx, 0 ; checking if counted div 5 == 0
     mov eax, ecx
     push ecx
     mov ecx, 5
     div ecx
+    pop ecx
     cmp edx, 0
     je print_basm
 
     call print_number
 skip_print:
-    pop ecx
     cmp ecx, [number]
     jne print_number_times
 
@@ -80,19 +83,62 @@ exit:
     exit_call 0
 
 print_fizz:
+    push ecx
     write 1, fizz, fizz_size
+    pop ecx
     jmp skip_print
 
 print_basm:
+    push ecx
     write 1, basm, fizz_size
+    pop ecx
     jmp skip_print
 
 print_fizzbasm:
+    push ecx
     write 1, fizzbasm, fizzbasm_size
+    pop ecx
     jmp skip_print
 
 print_number: ; number in ecx
-    write 1, output_test, 15 ; TODO: make it print a int, not a default string
+    mov eax, ecx
+    push eax
+    mov eax, ecx
+    xor ecx, ecx
+calculate_len:
+    inc ecx
+    push ecx
+    mov edx, 0
+    mov ecx, 10
+    div ecx
+    pop ecx
+    cmp eax, 0
+    jne calculate_len
+    ; now in ecx is len of number
+
+    pop eax
+    mov edx, eax
+    push edx
+    mov ebx, ecx
+    push ebx
+next_number:
+    dec ecx
+    push ecx
+    mov edx, 0
+    mov ecx, 10
+    div ecx
+    pop ecx
+    add edx, "0"
+    mov [string+ecx], dl
+    cmp ecx, 0
+    jne next_number
+    pop ebx
+    mov [string+ebx], byte 10
+    mov [string+ebx+1], byte 0
+    write 1, string, string_size
+    ; TODO: when returning ecx is messed up by write; in ecx should be current number we checking
+    pop edx
+    mov ecx, edx
     ret
 
 exit_error:
